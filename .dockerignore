@@ -1,0 +1,8 @@
+target
+data
+.vscode
+.git
+*.md
+deploy.sh
+Makefile
+*.json

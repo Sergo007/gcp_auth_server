@@ -1,0 +1,32 @@
+[package]
+name = "gcp_auth_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+actix = "0.13"
+actix-cors = "0.6"
+actix-files = "0.6"
+actix-web = { version = "4.3", features = ["rustls"] }
+actix-web-actors = "4.2"
+actix-web-httpauth = "0.8"
+actix-rt = "2.8"
+actix_derive = "0.6"
+
+# json serializer/deserializer
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# logging / tracing
+tracing = "0.1"
+tracing-core = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["json"] }
+
+# ctor
+ctor = "0.2.0"
+
+time = "0.3.7"
+rand = "0.8.5"
