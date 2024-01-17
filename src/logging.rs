@@ -1,5 +1,5 @@
-use tracing_core;
 use tracing_core::Level;
+use tracing_json2::JsonLayer;
 #[allow(unused_imports)]
 use tracing_subscriber::{
     filter,
@@ -8,28 +8,46 @@ use tracing_subscriber::{
 };
 
 #[derive(Debug, PartialEq)]
-pub enum Format {
-    Json,
-    Text,
+enum Format {
+    Json, // Json variant for JSON format
+    Text, // Text variant for plain text format
 }
 
-#[allow(dead_code)]
 fn get_filter() -> Vec<(&'static str, LevelFilter)> {
-    vec![("fred", LevelFilter::ERROR)]
+    vec![
+        ("handlebars", LevelFilter::WARN),
+        ("rustls", LevelFilter::WARN),
+        ("actix_http", LevelFilter::WARN),
+        ("actix_web", LevelFilter::WARN),
+        ("actix_server", LevelFilter::WARN),
+        ("mio", LevelFilter::WARN),
+        ("tokio_util", LevelFilter::WARN),
+        ("mio", LevelFilter::WARN),
+        ("async_nats", LevelFilter::INFO),
+        ("h2", LevelFilter::INFO),
+        ("actix_tls", LevelFilter::INFO),
+        ("awc", LevelFilter::INFO),
+    ]
 }
 
-#[allow(dead_code)]
-fn parse_format(format: String) -> Format {
-    match format.to_lowercase().as_str() {
-        "json" => Format::Json,
-        "text" => Format::Text,
-        _ => Format::Text,
+impl From<String> for Format {
+    fn from(value: String) -> Self {
+        match value.to_lowercase().as_str() {
+            "json" => Format::Json,
+            "text" => Format::Text,
+            _ => Format::Text,
+        }
     }
 }
 
 #[allow(dead_code)]
 fn init_text() {
-    let stdout_log = tracing_subscriber::fmt::layer().compact();
+    let stdout_log = tracing_subscriber::fmt::layer()
+        .compact()
+        .with_thread_ids(true)
+        .with_file(true)
+        .with_line_number(true)
+        .with_target(true);
     let filter = get_filter();
     tracing_subscriber::registry()
         // .with()
@@ -38,31 +56,27 @@ fn init_text() {
         .with(
             Targets::default()
                 .with_targets(filter)
-                .with_default(Level::DEBUG),
+                .with_default(Level::TRACE),
         )
         .init();
 }
 
 #[allow(dead_code)]
 fn init_json() {
-    let stdout_log = tracing_subscriber::fmt::layer().json();
     let filter = get_filter();
     tracing_subscriber::registry()
-        // .with()
-        // .with(filter)
-        .with(stdout_log)
+        .with(JsonLayer)
         .with(
             Targets::default()
                 .with_targets(filter)
-                .with_default(Level::DEBUG),
+                .with_default(Level::TRACE),
         )
         .init();
 }
 
 #[allow(dead_code)]
 fn init_default_logger(format: String) {
-    let format = parse_format(format);
-    match format {
+    match format.into() {
         Format::Text => init_text(),
         Format::Json => init_json(),
     }
@@ -70,12 +84,29 @@ fn init_default_logger(format: String) {
 
 #[cfg(test)]
 pub fn init_testing_logger() {
-    let stdout_log = tracing_subscriber::fmt::layer()
-        .with_test_writer()
-        .compact();
+    let filter = get_filter();
+
+    // #[cfg(feature = "")]
+    let layer = {
+        tracing_subscriber::fmt::layer()
+            .with_thread_ids(true)
+            .with_file(true)
+            .with_line_number(true)
+            .with_test_writer()
+            .with_span_events(tracing_subscriber::fmt::format::FmtSpan::ACTIVE)
+            .compact()
+    };
+
+    #[cfg(feature = "")]
+    let layer = { JsonLayer };
 
     tracing_subscriber::registry()
-        .with(stdout_log.with_filter(filter::LevelFilter::DEBUG))
+        .with(layer)
+        .with(
+            Targets::default()
+                .with_targets(filter)
+                .with_default(Level::TRACE),
+        )
         .init();
 }
 
@@ -83,7 +114,6 @@ pub fn init() {
     #[cfg(not(test))]
     {
         // let c = crate::config::Logging::from_env();
-        // init_default_logger(c.format);
         init_default_logger("text".to_string());
     }
 
@@ -99,21 +129,23 @@ mod logging_tests {
     use super::*;
 
     #[test]
-    fn test_parse_format_json() {
-        let f = parse_format(String::from("json"));
-        assert_eq!(f, Format::Json)
+    fn test_json_format_case_insensitive() {
+        assert_eq!(Format::from(String::from("JSON")), Format::Json);
+        assert_eq!(Format::from(String::from("json")), Format::Json);
+        assert_eq!(Format::from(String::from("Json")), Format::Json);
     }
 
     #[test]
-    fn test_parse_format_text() {
-        let f = parse_format(String::from("text"));
-        assert_eq!(f, Format::Text)
+    fn test_text_format_case_insensitive() {
+        assert_eq!(Format::from(String::from("TEXT")), Format::Text);
+        assert_eq!(Format::from(String::from("text")), Format::Text);
+        assert_eq!(Format::from(String::from("Text")), Format::Text);
     }
 
     #[test]
-    fn test_parse_format_unknown() {
-        let f = parse_format(String::from("bla"));
-        assert_eq!(f, Format::Text)
+    fn test_default_to_text_format_for_unrecognized_input() {
+        assert_eq!(Format::from(String::from("xml")), Format::Text);
+        assert_eq!(Format::from(String::from("gibberish")), Format::Text);
     }
 }
 //endregion

@@ -1,0 +1,11 @@
+ya29.a0AfB_byDa6dKWgNYynhBsG32-BE1PhdvwJrOCufdsazwBH0W-8ip11SA9ak3L8eI3bmMFycOx2gpRNSJYfEWRUZl6-dBJRifph6Jdl7-bZRJQEeZHFOfdsaJr8gp2yE2CLvJqTqS3fdsabkvzFaCgYKAfdsadf8h5rouS11007H_g0179
+
+
+Updates are available for some Google Cloud CLI components.  To install them,
+please run:
+  $ gcloud components update
+
+
+
+To take a quick anonymous survey, run:
+  $ gcloud survey
