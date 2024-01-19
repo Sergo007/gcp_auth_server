@@ -32,7 +32,7 @@ impl TokenRefresher {
                     let mut value_write = value.write().await;
                     *value_write = Some(val);
                 }
-                sleep(Duration::from_secs(55 * 60)).await;
+                sleep(Duration::from_secs(41 * 60)).await;
             }
         }));
     }

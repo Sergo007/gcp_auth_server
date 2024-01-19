@@ -32,7 +32,7 @@ impl AccessTokenRefresher {
                     let mut value_write = value.write().await;
                     *value_write = Some(val);
                 }
-                sleep(Duration::from_secs(54 * 60)).await;
+                sleep(Duration::from_secs(40 * 60)).await;
             }
         }));
     }
